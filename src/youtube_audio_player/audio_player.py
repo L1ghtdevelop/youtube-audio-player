@@ -1,17 +1,15 @@
 import datetime as dt
 import logging
-import subprocess
+import os
 import shutil
+import subprocess
 import time
 from pathlib import Path
 from typing import Any, cast
 
-import pygame
 import yt_dlp
 
 logger = logging.getLogger(__name__)
-
-
 
 def clear_log_file() -> None:
     with Path.open(Path("player.log"), "w") as file:
@@ -24,7 +22,6 @@ class YouTubeAudioPlayer:
         self.url = url
 
         clear_log_file()
-        pygame.mixer.init()
 
     def get_video_info(self) -> dict:
         ydl_opts: dict[str, Any] = {
@@ -36,21 +33,22 @@ class YouTubeAudioPlayer:
         with yt_dlp.YoutubeDL(cast("Any", ydl_opts)) as dlp:
             video_info = dlp.extract_info(self.url, download=False)
             duration = video_info.get("duration") or 1
+            duration_secs = video_info.get("duration") or 1
             duration = str(dt.timedelta(seconds=duration))
             info = {
                 "title": video_info.get("title"),
                 "duration": duration,
+                "duration_seconds": duration_secs,
             }
             logger.info(info)
             return info
 
-    def get_stream_info(self) -> str:
+    def get_stream_url(self) -> str:
             ydl_opts: dict[str, Any] = {
                "quiet": True,
                 "no_warnings": True,
                 "cookiesfrombrowser": ("firefox",),
                 "remote_components": "ejs:github",
-                # Мы явно просим только аудио, чтобы получить ссылку на аудиопоток
                 "format": "bestaudio/best",
             }
             with yt_dlp.YoutubeDL(cast("Any", ydl_opts)) as dlp:
@@ -58,3 +56,23 @@ class YouTubeAudioPlayer:
                 player_url = info.get("url") or " "
                 logger.info(player_url)
                 return player_url
+
+    def play_video(self) -> None:
+        mpv_path : str = shutil.which("mpv") or "mpv"
+        stream_url = self.get_stream_url()
+        info = self.get_video_info()
+        title = info["title"]
+        duration = info["duration"]
+        total_seconds = info["duration_seconds"]
+        start_time = time.time()
+
+        with subprocess.Popen( # noqa: S603
+            [mpv_path, "--no-video", stream_url],
+            stderr=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+        ) as process:
+            while process.poll() is None:
+                elapsed = int(time.time() - start_time)
+                elapsed = min(elapsed, total_seconds)
+                print(f"\r> {title} - {elapsed}/{total_seconds}", end="", flush=True)
+                time.sleep(1)
