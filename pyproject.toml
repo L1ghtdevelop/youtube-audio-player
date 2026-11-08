@@ -1,0 +1,67 @@
+[project]
+name = "youtube-audio-player"
+version = "0.1.0"
+description = "Audio player from youtube to console"
+readme = "README.md"
+authors = [
+    { name = "l1ghtdevelop", email = "niirokalostas1234@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "basedpyright>=1.40.2",
+    "pygame>=2.6.1",
+    "ruff>=0.17.4",
+    "yt-dlp>=2026.10.26",
+]
+
+[project.scripts]
+youtube-audio-player = "youtube_audio_player:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+# select = [...]  # See the Default Rules page for the full listing.
+ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D205",
+    "D212",
+    "F401",
+    "ANN101", # Не требовать тип для 'self' в методах классов
+    "ANN202",
+    "CPY001",
+    "TC003",
+    "ERA001",
+]
+select = ["ALL"]
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[\\p{XID_Continue}]*[\\p{XID_Continue}--_]+?))$"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
