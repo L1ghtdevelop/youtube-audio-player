@@ -1,6 +1,5 @@
 import datetime as dt
 import logging
-import os
 import shutil
 import subprocess
 import time
@@ -61,8 +60,9 @@ class YouTubeAudioPlayer:
         mpv_path : str = shutil.which("mpv") or "mpv"
         stream_url = self.get_stream_url()
         info = self.get_video_info()
-        title = info["title"]
-        duration = info["duration"]
+        len_short_title = 25
+        title = str(info["title"])
+        format_title = title[:22] + "..." if len(title) > len_short_title else title
         total_seconds = info["duration_seconds"]
         start_time = time.time()
 
@@ -71,8 +71,10 @@ class YouTubeAudioPlayer:
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
         ) as process:
+            print("\033[2J\033[H", end="")
+            print(f"> {format_title}", flush=True)
             while process.poll() is None:
                 elapsed = int(time.time() - start_time)
                 elapsed = min(elapsed, total_seconds)
-                print(f"\r> {title} - {elapsed}/{total_seconds}", end="", flush=True)
+                print(f"\033[2;1H\033[K{elapsed}/{total_seconds}", end="", flush=True)
                 time.sleep(1)
